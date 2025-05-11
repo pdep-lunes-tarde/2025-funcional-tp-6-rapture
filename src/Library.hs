@@ -2,23 +2,25 @@ module Library where
 import PdePreludat
 
 data Ingrediente =
-    Carne | Pan | Panceta | Cheddar | Pollo | Curry | QuesoDeAlmendras | PatiVegano | Lechuga
+    Carne | Pan | PanIntegral | Panceta | Cheddar | Pollo | Curry | QuesoDeAlmendras | PatiVegano | Lechuga | Papas | BaconDeTofu 
     deriving (Eq, Show)
 
 precioIngrediente Carne = 20
 precioIngrediente Pan = 2
+precioIngrediente PanIntegral = 3
 precioIngrediente Panceta = 10
 precioIngrediente Cheddar = 10
 precioIngrediente Pollo =  10
 precioIngrediente Curry = 5
 precioIngrediente QuesoDeAlmendras = 15
 precioIngrediente PatiVegano = 10
+precioIngrediente BaconDeTofu = 12
+precioIngrediente Papas = 10
 
 data Hamborguesa = Hamborguesa {
     precioBase :: Number,
     ingredientes :: [Ingrediente]
 } deriving (Eq, Show)
-
 
 cuartoDeLibra =
     Hamborguesa {
@@ -43,7 +45,6 @@ agrandarHamborguesa hamborguesa
 agregar :: Ingrediente -> Hamborguesa -> Hamborguesa
 agregar ingredienteNuevo hamborguesa = 
     hamborguesa {ingredientes = agregarIngrediente ingredienteNuevo (ingredientes hamborguesa)}
-
     where 
         agregarIngrediente _ [] = []
         agregarIngrediente nuevoIngrediente (cabezaIngrediente : colaIngrediente)
@@ -57,10 +58,9 @@ agregar ingredienteNuevo hamborguesa =
 aplicarDescuento :: Number -> Hamborguesa -> Hamborguesa
 aplicarDescuento porcentaje hamborguesa
     | porcentaje <= 0 = 
-        error"¡¡Ladrón!!"
+        error "¡¡Ladrón!!"
     | otherwise = 
         hamborguesa{precioBase = calcularDescuento porcentaje (precioBase hamborguesa)}
-
     where
         calcularDescuento porcentaje precio = 
             precio * (1 - porcentaje/100)
@@ -68,5 +68,61 @@ aplicarDescuento porcentaje hamborguesa
 -- **pdepBurger**: un cuarto de libra agrandado 2 veces con panceta, cheddar y 20% de descuento. Su precio final deberia ser 110.
 pdepBurga = aplicarDescuento 20 . agregar Cheddar . agregar Panceta . agrandarHamborguesa . agrandarHamborguesa $ cuartoDeLibra
 
+---------- Punto 2 ----------
+
 -- **dobleCuarto** = es un cuarto de libra con carne y cheddar. El precio final deberia ser 84.
 dobleCuarto = agregar Cheddar . agrandarHamborguesa $ cuartoDeLibra
+bigPdep = agregar Curry . agrandarHamborguesa $ cuartoDeLibra
+
+hamborguesaDelDia :: Hamborguesa -> Hamborguesa
+hamborguesaDelDia unaHamborguesa = aplicarDescuento 30 . agregar Papas $ unaHamborguesa
+
+---------- Punto 3 ----------
+
+hacerIngredienteVeggie :: Ingrediente -> Ingrediente
+hacerIngredienteVeggie unIngrediente
+    | unIngrediente == Carne || unIngrediente == Pollo = PatiVegano
+    | unIngrediente == Cheddar = QuesoDeAlmendras
+    | unIngrediente == Panceta = BaconDeTofu
+    | otherwise = unIngrediente
+
+hacerVeggie :: Hamborguesa -> Hamborguesa
+hacerVeggie unaHamborguesa = unaHamborguesa {ingredientes = map hacerIngredienteVeggie (ingredientes unaHamborguesa)}
+
+cambiarTipoDePan :: Ingrediente -> Ingrediente
+cambiarTipoDePan ingred
+    | ingred == Pan = PanIntegral
+    | otherwise = ingred
+
+cambiarPanDePati :: Hamborguesa -> Hamborguesa
+cambiarPanDePati unaHamburguesa = unaHamburguesa {
+    ingredientes = map cambiarTipoDePan (ingredientes unaHamburguesa)
+}
+
+dobleCuartoVegano = hacerVeggie . cambiarPanDePati $ dobleCuarto -- (incomible)
+
+
+
+{-
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⡤⠶⠶⠚⠛⠛⠻⠿⢷⣶⡶⢾⣿⢿⣿⣷⣶⣶⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⠶⠛⠉⠀⡀⠴⣏⡧⠐⠚⢛⡛⠓⠺⣿⣮⡿⠦⢤⡀⠀⠈⣭⠉⠛⠻⠷⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣠⣶⠟⠉⣤⡄⠀⣠⡛⠃⢠⣦⡄⠀⠀⡛⠛⠀⠰⠿⠟⢧⡀⠀⠻⠦⠀⠀⠀⠶⠀⢠⣦⡙⢿⣶⡄⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣠⡾⠋⠑⠀⠀⠉⠀⠐⠟⠁⢀⣤⡉⠀⠀⠸⢿⠂⠀⣶⡦⠀⠘⠇⠀⠀⠰⠆⠀⣠⣤⡀⠀⠉⠀⠀⠙⣿⣆⠀⠀⠀⠀⠀
+⠀⠀⠀⢀⣼⡟⠁⠀⠀⠰⠀⠀⠀⠀⠀⠀⠀⠉⢁⣤⡀⠀⣀⠀⠀⢀⣠⡀⠀⠀⢰⣶⠀⠀⠀⠈⠉⠀⠀⠀⠼⠏⠀⠈⠻⣦⠀⠀⠀⠀
+⠀⠀⢀⣿⠏⡀⠀⠀⠀⠀⠀⠀⠀⠘⠛⠀⠀⣀⡈⠉⠀⠀⠋⠁⠀⠈⠉⠁⠀⠀⠀⠁⠀⠰⠟⠀⠀⠀⠰⠆⠀⠀⠀⠄⠀⠘⢧⠀⠀⠀
+⠀⠀⣾⡟⢠⠇⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠁⠀⠀⠘⠛⠃⠀⠀⠀⢰⡆⠀⠀⠀⠀⠀⠀⠠⣤⠄⠀⢀⠀⠀⠀⠀⠀⠀⠈⣧⠀⠀
+⠀⠀⣿⣇⠈⣧⡟⣆⢘⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⢹⡄⠀
+⠀⠀⠘⣿⣦⣌⣁⠈⠚⠷⢽⣮⣦⣄⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⠃⠀
+⠀⢀⣤⠾⢋⠈⠉⠛⠳⠦⣤⣀⡉⠉⠉⠒⠛⠷⢶⡤⠤⠤⠤⠤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⡀⠤⠴⠶⢾⣿⣅⠀⠀
+⣴⣿⠿⢿⣿⠃⡀⠀⠀⠀⣀⠈⠉⠛⠒⠲⣦⣤⡤⠤⠤⠤⠤⠤⠤⠤⠤⠴⠶⠖⠲⠶⣶⣒⠛⠛⠋⠉⠉⠀⠀⠀⠀⠀⢀⣀⣈⣻⣿⣦
+⠀⠀⠀⠚⠛⣻⡇⠀⣴⣏⣙⣷⠦⠶⠶⣟⠉⠀⠀⠀⠀⢠⡤⠤⣤⣀⠀⠀⠀⣤⢶⣄⣠⡭⠿⢶⣄⠀⢀⣤⠶⠶⢦⡤⠼⣿⡏⠉⠙⠻
+⠀⠀⠀⢠⣴⣿⣷⣶⣿⣤⣉⡙⠛⠒⠒⠛⠛⣿⡄⢀⣤⠾⠤⠤⠖⠛⢷⣤⣼⣿⠶⣭⣄⣀⣀⢀⣸⣾⣋⣀⣀⣤⡤⣶⣿⣿⣅⠀⠀⠀
+⠀⠀⠀⢿⣿⣿⣿⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣀⠀⠀⠀⠀⠀⠀⢀⣠⠴⢚⣽⣿⣿⣿⣿⣿⣿⡿⠻⠙⠋⠉⠘⣿⡄⠀⠀
+⠀⠀⠀⣸⣿⣿⣿⣿⣿⣟⣿⣿⣿⡟⢻⣏⣹⢻⣿⢻⣻⣿⣿⣦⠀⣀⣀⡴⠞⣋⣤⣶⡿⣿⠋⠳⣞⢁⡠⠁⠀⠀⠀⠀⠀⢀⣿⡇⠀⠀
+⠀⠀⠀⠘⣿⣿⣿⣿⣿⣿⣿⣿⣖⢻⣿⣿⣿⣿⣿⣻⣿⣿⣿⡿⣧⣭⣵⠖⠋⢩⣽⢁⣀⠻⠀⢤⣤⠿⠤⠖⣦⣷⣂⣠⣴⣾⣟⠃⠀⠀
+⠀⠀⠀⣾⡟⢿⣄⣈⣽⡿⠿⠟⠛⠿⣿⣿⣿⣿⣿⣿⣹⣯⣿⣤⣾⣚⣿⣲⣿⣚⣧⣤⣿⣾⣷⣾⣿⣾⣟⣋⡉⠉⠉⣿⠀⠙⣿⡄⠀⠀
+⠀⠀⠀⣿⡆⣆⠀⠀⠀⠀⠀⠀⠀⠀⠉⠙⢷⡄⠀⠉⠉⣉⡽⠛⠋⠙⠛⠿⣤⣤⠴⠟⠋⠁⠀⠀⠀⠀⠀⠈⠉⠛⠒⠛⠀⠀⢹⡇⠀⠀
+⠀⠀⠀⢿⣷⢻⣿⣆⢠⡀⠀⡀⠀⠀⠀⠀⠀⠙⠳⠶⠞⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⡇⠀⠀
+⠀⠀⠀⠘⢿⣦⣍⡛⠦⣷⣀⠳⣀⠈⠳⣄⠀⠀⣀⢀⣀⣀⣀⣀⣀⣀⣀⠀⠀⢀⣀⣀⣀⣀⡠⠤⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⠟⠀⠀⠀
+⠀⠀⠀⠀⠀⠉⠙⠛⠻⠷⣶⣶⣾⣽⣷⣦⣤⣀⣈⣉⣉⣁⣀⣀⣀⣤⣤⣤⣤⣤⣤⣤⣤⣤⣤⣶⡶⠶⠶⠶⠒⠚⠋⠉⠁⠀⠀⠀⠀⠀
+-}
