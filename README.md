@@ -11,16 +11,14 @@
 
 ## Equipo
 
-- Nombre del grupo
+- Nombre equipo: Rapture
 
-- Legajo: **Completar**
-- Nombre: **Completar**
+Integrantes:
+- Legajo: 2040712
+- Nombre: Ramiro Silva
 
-- Legajo: **Completar**
-- Nombre: **Completar**
-
-- Legajo: **Completar**
-- Nombre: **Completar**
+- Legajo: 2038365
+- Nombre: Francisco Meaurio
 
 
 ## El enunciado
